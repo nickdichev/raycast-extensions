@@ -3,9 +3,7 @@ import { useFetch } from "@raycast/utils";
 import { useState } from "react";
 
 interface BrandLogo {
-  id: number;
-  asset_path: string;
-  asset_bucket: string;
+  url: string;
 }
 
 interface Brand {
@@ -26,8 +24,6 @@ type TRPCResponse = [
 ];
 
 const BASE_URL = "https://portalwholesale.com";
-const ASSETS_URL = "https://assets.portalwholesale.com";
-const IMAGE_RESIZER_URL = "https://image-resizer.portalwholesale.com";
 
 function buildSearchUrl(searchText: string): string {
   const input = JSON.stringify({ "0": { searchQuery: searchText } });
@@ -35,17 +31,16 @@ function buildSearchUrl(searchText: string): string {
 }
 
 function getBrandLogoUrl(brand: Brand): string | undefined {
-  if (!brand.brand_logo?.asset_path) {
-    return undefined;
-  }
-  const imageUrl = `${ASSETS_URL}/${brand.brand_logo.asset_path}`;
-  return `${IMAGE_RESIZER_URL}/?image=${encodeURIComponent(imageUrl)}&width=256&height=256&fit=contain`;
+  return brand.brand_logo?.url;
 }
 
+const countryNames = new Intl.DisplayNames(["en"], { type: "region" });
+
 function formatLocation(brand: Brand): string {
-  const parts = [brand.headquarters_city, brand.headquarters_country].filter(
-    Boolean,
-  );
+  const country = brand.headquarters_country
+    ? countryNames.of(brand.headquarters_country)
+    : undefined;
+  const parts = [brand.headquarters_city, country].filter(Boolean);
   return parts.join(", ");
 }
 
@@ -99,8 +94,8 @@ export default function SearchBrands() {
                     icon={Icon.Globe}
                   />
                   <Action.OpenInBrowser
-                    title="Open Brand Admin"
-                    url={`${BASE_URL}/admin/brands/${brand.slug}`}
+                    title="Open Organization Admin"
+                    url={`${BASE_URL}/admin/organizations/redirect-for-brand?slug=${brand.slug}`}
                     icon={Icon.Gear}
                   />
                 </ActionPanel.Section>
